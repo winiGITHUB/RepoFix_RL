@@ -20,7 +20,14 @@ def run_submission(language: str, source_code: str, samples: list[dict]) -> dict
             compiler = os.getenv("CPP_COMPILER", "g++")
             compiler_path = shutil.which(compiler)
             if compiler_path is None:
-            return {"compile_status": "unavailable", "run_status": "not_run", "stdout": "", "stderr": f"找不到 C++ 编译器 {compiler}。请安装 g++/MinGW 并配置 PATH。", "duration_ms": 0, "sample_results": []}
+                return {
+                    "compile_status": "unavailable",
+                    "run_status": "not_run",
+                    "stdout": "",
+                    "stderr": f"找不到 C++ 编译器 {compiler}。请安装 g++/MinGW 并配置 PATH。",
+                    "duration_ms": 0,
+                    "sample_results": [],
+                }
             source = root / "main.cpp"
             executable = root / ("main.exe" if os.name == "nt" else "main")
             source.write_text(source_code, encoding="utf-8")
