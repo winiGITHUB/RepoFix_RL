@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import shutil
 
 import os
 from dotenv import load_dotenv
@@ -32,9 +33,21 @@ def get_agent() -> DemoAgent | OpenAICompatibleAgent:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     try:
-        return {"status": "ok", "provider": get_agent().name}
+        compiler = os.getenv("CPP_COMPILER", "g++")
+        return {
+            "status": "ok",
+            "provider": get_agent().name,
+            "cpp_compiler": compiler,
+            "cpp_compiler_found": str(shutil.which(compiler) is not None).lower(),
+        }
     except ValueError as exc:
-        return {"status": "misconfigured", "provider": str(exc)}
+        compiler = os.getenv("CPP_COMPILER", "g++")
+        return {
+            "status": "misconfigured",
+            "provider": str(exc),
+            "cpp_compiler": compiler,
+            "cpp_compiler_found": str(shutil.which(compiler) is not None).lower(),
+        }
 
 
 @app.get("/api/tasks", response_model=list[TaskSummary])
