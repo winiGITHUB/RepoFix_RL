@@ -13,8 +13,12 @@ export default function App() {
   const [run, setRun] = useState<Run | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [provider, setProvider] = useState('checking…')
 
-  useEffect(() => { fetch('/api/tasks').then(r => r.json()).then((items: Task[]) => { setTasks(items); if (items[0]) setSelected(items[0].id) }).catch(() => setError('无法连接后端，请先启动 FastAPI 服务。')) }, [])
+  useEffect(() => {
+    fetch('/api/tasks').then(r => r.json()).then((items: Task[]) => { setTasks(items); if (items[0]) setSelected(items[0].id) }).catch(() => setError('无法连接后端，请先启动 FastAPI 服务。'))
+    fetch('/api/health').then(r => r.json()).then((health: { provider: string }) => setProvider(health.provider)).catch(() => setProvider('offline'))
+  }, [])
 
   const task = tasks.find(item => item.id === selected)
   async function startRun() {
@@ -32,7 +36,7 @@ export default function App() {
     <header className="topbar">
       <div className="brand"><div className="brand-mark"><Code2 size={19} /></div><span>repofix<span className="brand-accent">.rl</span></span><span className="brand-tag">AGENT LAB</span></div>
       <div className="top-center"><span className="live-dot" /> Local workspace <span className="top-divider">/</span> <GitBranch size={13} /> main</div>
-      <div className="top-right"><span className="model-pill"><span className="model-dot" /> Demo provider</span><div className="avatar">W</div></div>
+      <div className="top-right"><span className="model-pill"><span className="model-dot" /> {provider}</span><div className="avatar">W</div></div>
     </header>
 
     <main className="layout">
