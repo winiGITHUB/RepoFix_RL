@@ -1,10 +1,10 @@
 # RepoFix-RL
 
-RepoFix-RL 是面向小型 Python 仓库的代码修复 Agent 原型，目标是将 Agent 运行、自动测试奖励和 GRPO 后训练实验串成可观察、可复现的闭环。
+RepoFix-RL（产品名 CodeReview Tutor）是面向算法题学习者的代码诊断与复盘 Agent。用户提交题目描述、自己的代码并选择 Python 或 C++，Agent 运行代码、定位错误、构造反例并给出分层提示和解题复盘。
 
 ## 当前版本
 
-首个本地原型包含：FastAPI 后端、可替换的 Agent Provider、隔离的临时任务工作区、pytest 评分器、运行轨迹与 unified diff API，以及 React/Vite 演示前端。当前默认 Provider 是**确定性演示 Provider**，只用于验证产品链路；它不是语言模型，也不代表已实现训练。
+当前技术原型包含：React/Vite 前端、FastAPI 后端、Ollama + Qwen2.5-Coder 1.5B Provider，以及用于验证模型调用和测试评分的 Python 微任务。新的题目/代码输入流程与 C++ 执行器尚在开发中；内置微任务不是正式评测集，当前也尚未进行 SFT/GRPO。
 
 ## 快速开始
 
@@ -60,8 +60,8 @@ Vite 会将 `/api` 请求代理到本地 FastAPI。页面默认在 `http://127.0
 - `scripts/`：开发和评测辅助脚本。
 - `docs/`：项目书及复现说明。
 
-## 当前边界
+## 产品边界
 
-执行器仅对内置演示任务创建临时副本并运行固定 pytest 命令，不接受用户上传仓库或任意命令。真实模型 Provider 可选接入 Ollama 的 OpenAI-compatible API；默认演示 Provider 仍是规则实现。模型训练、容器级沙箱和生产部署尚未接入。
+MVP 面向本地使用。公开仓库不打包未经许可的 LeetCode 题面、官方解答或隐藏测试；用户可在本地会话粘贴题目描述和代码。执行用户代码前会设置语言专属 runner、超时和资源限制；在完整 OS/container 沙箱完成前，不应对不可信公网用户开放。
 
 项目计划见 [`docs/项目书与任务拆分.md`](docs/项目书与任务拆分.md)。
