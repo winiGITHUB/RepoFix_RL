@@ -3,7 +3,9 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .agent import DemoAgent
+import os
+
+from .agent import DemoAgent, OpenAICompatibleAgent
 from .evaluator import evaluate
 from .models import RunRequest, RunResult, TaskSummary
 from .tasks import get_task, list_tasks
@@ -17,9 +19,18 @@ app.add_middleware(
 )
 
 
+def get_agent() -> DemoAgent | OpenAICompatibleAgent:
+    if os.getenv("AGENT_PROVIDER", "demo").lower() == "openai-compatible":
+        return OpenAICompatibleAgent()
+    return DemoAgent()
+
+
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "provider": DemoAgent.name}
+    try:
+        return {"status": "ok", "provider": get_agent().name}
+    except ValueError as exc:
+        return {"status": "misconfigured", "provider": str(exc)}
 
 
 @app.get("/api/tasks", response_model=list[TaskSummary])
@@ -31,8 +42,10 @@ def tasks() -> list[TaskSummary]:
 def run_task(request: RunRequest) -> RunResult:
     try:
         task = get_task(request.task_id)
-        return evaluate(task, DemoAgent(), run_id=str(uuid4()))
+        return evaluate(task, get_agent(), run_id=str(uuid4()))
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except TimeoutError as exc:
         raise HTTPException(status_code=408, detail="Evaluation timed out") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc

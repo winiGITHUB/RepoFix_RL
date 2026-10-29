@@ -4,12 +4,12 @@ import tempfile
 import time
 from pathlib import Path
 
-from .agent import DemoAgent
-from .models import RunResult, TaskSummary, TraceEvent
+from .agent import DemoAgent, OpenAICompatibleAgent
+from .models import RunResult, TraceEvent
 from .tasks import DemoTask
 
 
-def evaluate(task: DemoTask, agent: DemoAgent, run_id: str) -> RunResult:
+def evaluate(task: DemoTask, agent: DemoAgent | OpenAICompatibleAgent, run_id: str) -> RunResult:
     started = time.perf_counter()
     trace: list[TraceEvent] = [
         TraceEvent(step=1, kind="plan", title="分析任务", detail=task.summary.description),
@@ -30,7 +30,7 @@ def evaluate(task: DemoTask, agent: DemoAgent, run_id: str) -> RunResult:
         trace.append(TraceEvent(step=4, kind="tool", title="应用补丁", detail=f"更新 {edit.path}"))
 
         completed = subprocess.run(
-            [sys.executable, "-m", "pytest", "-q", "test_solution.py"],
+        [sys.executable, "-m", "pytest", "-q", "test_solution.py"],
             cwd=root,
             capture_output=True,
             text=True,
