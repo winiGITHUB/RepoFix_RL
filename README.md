@@ -39,9 +39,9 @@ $env:MODEL_NAME = "qwen2.5-coder:1.5b"
 
 本地 Ollama 不需要 API key。随后照常运行 `uvicorn app.main:app --reload`。健康检查 `/api/health` 会报告当前 Provider。要恢复演示模式，可在新终端（未设置这些变量）启动后端。
 
-### 提交代码进行诊断
+### 提交 ACM 模式代码进行诊断
 
-前端接收题目描述、Python/C++ 代码和多组样例。样例按 JSON 数组填写，例如：
+前端接收题目描述、完整 ACM 模式 Python/C++ 程序（包含输入解析和输出）和多组样例。程序从标准输入读取数据并向标准输出打印答案。样例按 JSON 数组填写，例如：
 
 ```json
 [
@@ -50,7 +50,7 @@ $env:MODEL_NAME = "qwen2.5-coder:1.5b"
 ]
 ```
 
-当前 runner 面向**完整、可独立运行的 stdin/stdout 程序**。LeetCode 常见的 `class Solution`/方法提交片段不能直接运行；需要后续加入题型/方法签名对应的 harness。当前校验的是用户提供的样例，不是 LeetCode 全部隐藏测试，也不能据此宣称 AC。
+当前 runner 面向**完整、可独立运行的 ACM stdin/stdout 程序**。每组样例会启动程序、传入对应 stdin，并将 stdout 与期望输出比较（忽略首尾空白）。当前只校验用户提供的样例，不会声称通过未提供的隐藏测试。
 
 ### 前端
 
@@ -75,6 +75,6 @@ Vite 会将 `/api` 请求代理到本地 FastAPI。页面默认在 `http://127.0
 
 ## 产品边界
 
-MVP 面向本地使用。公开仓库不打包未经许可的 LeetCode 题面、官方解答或隐藏测试；用户可在本地会话粘贴题目描述和代码。执行用户代码前会设置语言专属 runner、超时和资源限制；在完整 OS/container 沙箱完成前，不应对不可信公网用户开放。
+MVP 面向本地算法考试练习。公开仓库使用原创题目和评测样本；执行用户代码前会设置语言专属 runner 和超时。在完整 OS/container 沙箱完成前，不应对不可信公网用户开放。
 
 项目计划见 [`docs/项目书与任务拆分.md`](docs/项目书与任务拆分.md)。
