@@ -4,12 +4,15 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 import os
+from dotenv import load_dotenv
 
 from .agent import DemoAgent, OpenAICompatibleAgent
 from .evaluator import evaluate
 from .models import RunRequest, RunResult, SubmissionResult, SubmissionRequest, TaskSummary, TraceEvent
 from .submission_runner import run_submission
 from .tasks import get_task, list_tasks
+
+load_dotenv()
 
 app = FastAPI(title="RepoFix-RL API", version="0.1.0")
 app.add_middleware(

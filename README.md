@@ -22,22 +22,16 @@ uvicorn app.main:app --reload
 
 ### 接入本地 Qwen 模型（可选）
 
-默认仍运行确定性 demo provider。要让本地模型生成补丁，先安装 [Ollama for Windows](https://ollama.com/download/windows)，在 PowerShell 下载并启动模型：
+要让本地模型生成诊断，先安装 [Ollama for Windows](https://ollama.com/download/windows)，下载模型：
 
 ```powershell
 ollama pull qwen2.5-coder:1.5b
 ollama serve
 ```
 
-保持 Ollama 窗口运行，另开 PowerShell，在启动 FastAPI 前设置：
+Ollama 安装后通常在后台运行。后端配置保存在 `backend/.env`：复制 `backend/.env.example` 为 `backend/.env`，然后按本机环境修改 `MODEL_BASE_URL`、`MODEL_NAME` 和 `CPP_COMPILER`。该文件已被 Git 忽略，不要提交。
 
-```powershell
-$env:AGENT_PROVIDER = "openai-compatible"
-$env:MODEL_BASE_URL = "http://127.0.0.1:11434/v1"
-$env:MODEL_NAME = "qwen2.5-coder:1.5b"
-```
-
-本地 Ollama 不需要 API key。随后照常运行 `uvicorn app.main:app --reload`。健康检查 `/api/health` 会报告当前 Provider。要恢复演示模式，可在新终端（未设置这些变量）启动后端。
+默认配置启用本地 Ollama 的 OpenAI-compatible Provider，本地调用不需要 API key。保存 `.env` 后启动后端即可；健康检查 `/api/health` 会报告当前 Provider。想切回 demo 模式，将 `AGENT_PROVIDER` 改为 `demo`。
 
 ### 提交 ACM 模式代码进行诊断
 
