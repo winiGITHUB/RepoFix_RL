@@ -23,6 +23,7 @@ cache/
 # Frontend dependencies/build
 node_modules/
 dist/
+frontend/.npm-cache/
 
 # Logs and editor/OS files
 *.log
