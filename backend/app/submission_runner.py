@@ -26,6 +26,6 @@ def run_submission(language: str, source_code: str, samples: list[dict]) -> dict
                 results.append({"case": index, "passed": matched, "input": case.get("input", ""), "expected": expected, "actual": actual, "stderr": completed.stderr[-1500:], "exit_code": completed.returncode})
             all_passed = all(row["passed"] for row in results)
             summary = "\n".join(f"样例 {row['case']}: {'通过' if row['passed'] else '未通过'}\n期望: {row['expected']}\n实际: {row['actual']}" for row in results)
-            return {"compile_status": "passed", "run_status": "completed" if all_passed else "failed", "stdout": summary, "stderr": "\n".join(row["stderr"] for row in results if row["stderr"]), "duration_ms": int((time.perf_counter()-started)*1000), "sample_results": results}
+            return {"compile_status": "passed", "run_status": "passed" if all_passed else "failed", "stdout": summary, "stderr": "\n".join(row["stderr"] for row in results if row["stderr"]), "duration_ms": int((time.perf_counter()-started)*1000), "sample_results": results}
         except subprocess.TimeoutExpired as exc:
             return {"compile_status": "passed", "run_status": "timeout", "stdout": (exc.stdout or "")[-4000:] if isinstance(exc.stdout, str) else "", "stderr": "程序运行超过 3 秒，已终止。", "duration_ms": int((time.perf_counter()-started)*1000), "sample_results": []}

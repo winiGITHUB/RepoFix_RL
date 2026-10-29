@@ -118,6 +118,10 @@ class OpenAICompatibleAgent:
         system = (
             "你是循序渐进的算法代码诊断导师。根据题意、用户代码和真实运行结果诊断；"
             "不要默认代码错误。如果缺少完整测试，只能说当前样例下观察到什么，不可声称已通过隐藏测试。"
+            "execution.sample_results 是实际执行的权威结果：passed=true 的样例绝不能描述为失败或反例；"
+            "若至少一个样例通过且所有已提供样例都通过，verdict 必须是‘样例均通过，暂未复现错误’或‘无法确定’，"
+            "不得断言输入格式、算法逻辑或输出存在错误；只能指出尚未覆盖的边界风险，并明确标为待验证。"
+            "若有失败样例，必须使用对应样例的真实 input、expected、actual 或 exit_code 解释，不得捏造输入错误。"
             "若 execution.compile_status 为 failed、timeout 或 unavailable，程序尚未运行；只能诊断编译器状态与 stderr，"
             "不得把原因归结为 stdin 输入格式，也不得声称观察到程序运行行为。"
             "输出严格 JSON，字段 verdict, bug_category, location, counterexample, root_cause, hints (array), solution_review, suggested_patch。"
