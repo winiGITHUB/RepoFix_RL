@@ -7,7 +7,7 @@ type Run = { run_id: string; language: string; compile_status: string; run_statu
 const eventIcon = (kind: string) => kind === 'tool' ? <Wrench size={15} /> : kind === 'evaluation' ? <FlaskConical size={15} /> : kind === 'reasoning' ? <Sparkles size={15} /> : <CircleDot size={15} />
 
 export default function App() {
-  const [language, setLanguage] = useState<'python' | 'cpp'>('python')
+  const language = 'python' as const
   const [problem, setProblem] = useState('读取两个整数 a 和 b，输出它们的和。输入仅一行，包含两个空格分隔的整数。')
   const [sourceCode, setSourceCode] = useState('import sys\na, b = map(int, sys.stdin.read().split())\nprint(a + b)\n')
   const [sampleCases, setSampleCases] = useState('[\n  {"input": "3 4\\n", "expected_output": "7"},\n  {"input": "-5 12\\n", "expected_output": "7"}\n]')
@@ -46,7 +46,7 @@ export default function App() {
         <button className="nav-item muted"><FlaskConical size={16} /> Experiments <span className="soon">SOON</span></button>
         <div className="side-divider" />
         <div className="side-label">LANGUAGES</div>
-        <div className="benchmark-card"><div className="bench-icon"><FileCode2 size={16} /></div><div><strong>Python + C++</strong><span>Local code runner</span></div><ChevronDown size={14} className="bench-chevron" /></div>
+        <div className="benchmark-card"><div className="bench-icon"><FileCode2 size={16} /></div><div><strong>Python 3</strong><span>Local code runner</span></div><ChevronDown size={14} className="bench-chevron" /></div>
         <div className="side-bottom"><div className="connection"><span className="live-dot" /> API connected</div><span>v0.1.0 · Local prototype</span></div>
       </aside>
 
@@ -56,7 +56,7 @@ export default function App() {
           <div className="main-column">
             <section className="panel task-panel">
               <div className="panel-top"><div className="section-kicker"><span className="step-number">01</span> YOUR SUBMISSION</div><span className="task-count">LOCAL ONLY</span></div>
-              <div className="submission-form"><label className="input-label">Programming language<select value={language} onChange={e => { const next = e.target.value as 'python' | 'cpp'; setLanguage(next); setSourceCode(next === 'python' ? 'import sys\na, b = map(int, sys.stdin.read().split())\nprint(a + b)\n' : '#include <iostream>\nusing namespace std;\n\nint main() {\n    long long a, b;\n    cin >> a >> b;\n    cout << a + b << \'\\n\';\n    return 0;\n}\n') }}><option value="python">Python 3</option><option value="cpp">C++17</option></select></label><label className="input-label">Problem description<textarea className="problem-input" value={problem} onChange={e => setProblem(e.target.value)} placeholder="Paste the problem statement or describe the task…" rows={4}/></label><label className="input-label">Your code<textarea className="code-input" value={sourceCode} onChange={e => setSourceCode(e.target.value)} placeholder={language === 'python' ? 'Paste a complete Python stdin/stdout program…' : 'Paste a complete C++17 stdin/stdout program…'} rows={11} spellCheck={false}/></label><label className="input-label">Examples (JSON array with input and expected_output)<textarea className="sample-input" value={sampleCases} onChange={e => setSampleCases(e.target.value)} rows={5} spellCheck={false}/></label></div>
+              <div className="submission-form"><label className="input-label">Programming language<select value="python" disabled><option value="python">Python 3</option></select></label><label className="input-label">Problem description<textarea className="problem-input" value={problem} onChange={e => setProblem(e.target.value)} placeholder="Paste the problem statement or describe the task…" rows={4}/></label><label className="input-label">Your code<textarea className="code-input" value={sourceCode} onChange={e => setSourceCode(e.target.value)} placeholder="Paste a complete Python stdin/stdout program…" rows={11} spellCheck={false}/></label><label className="input-label">Examples (JSON array with input and expected_output)<textarea className="sample-input" value={sampleCases} onChange={e => setSampleCases(e.target.value)} rows={5} spellCheck={false}/></label></div>
               <div className="run-row"><div className="run-caption"><span className="caption-dot" /> Runs locally <span className="run-caption-sep">·</span> 3s timeout</div><button className="run-button" onClick={startRun} disabled={busy || !problem.trim() || !sourceCode.trim()}>{busy ? <LoaderCircle className="spin" size={16} /> : <Play size={15} fill="currentColor" />} {busy ? 'Analyzing' : 'Run & review'} <ArrowRight size={15} /></button></div>
             </section>
 

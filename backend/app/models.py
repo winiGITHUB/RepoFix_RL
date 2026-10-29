@@ -13,7 +13,7 @@ class TaskSummary(BaseModel):
 
 class RunRequest(BaseModel):
     problem: str = Field(min_length=10, max_length=12000)
-    language: Literal["python", "cpp"]
+    language: Literal["python"]
     source_code: str = Field(min_length=1, max_length=30000)
     sample_input: str = Field(default="", max_length=4000)
     expected_output: str = Field(default="", max_length=4000)
@@ -32,7 +32,7 @@ class DiagnosisResult(BaseModel):
 
 class SubmissionRequest(BaseModel):
     problem: str = Field(min_length=10, max_length=12000)
-    language: Literal["python", "cpp"]
+    language: Literal["python"]
     source_code: str = Field(min_length=1, max_length=30000)
     samples: list["SampleCase"] = Field(default_factory=list, max_length=20)
 

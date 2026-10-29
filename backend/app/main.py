@@ -2,8 +2,6 @@ from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import shutil
-
 import os
 from dotenv import load_dotenv
 
@@ -33,20 +31,14 @@ def get_agent() -> DemoAgent | OpenAICompatibleAgent:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     try:
-        compiler = os.getenv("CPP_COMPILER", "g++")
         return {
             "status": "ok",
             "provider": get_agent().name,
-            "cpp_compiler": compiler,
-            "cpp_compiler_found": str(shutil.which(compiler) is not None).lower(),
         }
     except ValueError as exc:
-        compiler = os.getenv("CPP_COMPILER", "g++")
         return {
             "status": "misconfigured",
             "provider": str(exc),
-            "cpp_compiler": compiler,
-            "cpp_compiler_found": str(shutil.which(compiler) is not None).lower(),
         }
 
 
@@ -74,26 +66,18 @@ def diagnose_submission(request: SubmissionRequest) -> SubmissionResult:
         samples = [item.model_dump() for item in request.samples]
         execution = run_submission(request.language, request.source_code, samples)
         if execution["compile_status"] != "passed":
-            # A model must not reinterpret a compiler failure as a runtime/input bug.
-            compiler_output = execution["stderr"].strip()
-            if execution["compile_status"] == "failed" and "[compiler returned no diagnostic output]" in compiler_output:
-                root_cause = "编译器返回失败状态，但没有提供错误信息；程序尚未运行，因此目前无法判断代码或输入格式是否有问题。"
-                hints = [
-                    "在终端运行 `C:\\msys64\\ucrt64\\bin\\g++.exe --version`，确认编译器可正常启动。",
-                    "将 PROGRAM OUTPUT 中显示的完整编译命令复制到终端运行，并检查是否有安全软件拦截或进程异常退出。",
-                    "如果问题持续，请提供完整的 PROGRAM OUTPUT 和后端终端日志。",
-                ]
-            else:
-                root_cause = compiler_output or "编译器未能完成编译；程序尚未运行。"
-                hints = ["根据下方 PROGRAM OUTPUT 中的编译器信息修正编译问题后再运行。"]
+            # Do not let the model reinterpret a runner failure as an input/runtime bug.
+            execution_output = execution["stderr"].strip()
+            root_cause = execution_output or "Python 执行器未能完成运行。"
+            hints = ["检查下方 PROGRAM OUTPUT 和样例输入，再根据具体错误调整代码。"]
             diagnosis = {
-                "verdict": "编译未通过，程序尚未运行。",
-                "bug_category": "compiler",
-                "location": "编译阶段",
-                "counterexample": "无；样例尚未执行。",
+                "verdict": "执行器未完成运行。",
+                "bug_category": "execution",
+                "location": "Python 执行阶段",
+                "counterexample": "无；样例尚未完成执行。",
                 "root_cause": root_cause,
                 "hints": hints,
-                "solution_review": "由于编译失败，没有运行结果可用于评价算法逻辑或输入处理。",
+                "solution_review": "由于执行器未完成运行，没有完整结果可用于评价算法逻辑或输入处理。",
                 "suggested_patch": "",
             }
         else:

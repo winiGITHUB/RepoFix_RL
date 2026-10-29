@@ -1,10 +1,10 @@
 # RepoFix-RL
 
-RepoFix-RL（产品名 CodeReview Tutor）是面向算法题学习者的代码诊断与复盘 Agent。用户提交题目描述、自己的代码并选择 Python 或 C++，Agent 运行代码、定位错误、构造反例并给出分层提示和解题复盘。
+RepoFix-RL（产品名 CodeReview Tutor）是面向算法题学习者的代码诊断与复盘 Agent。用户提交题目描述和自己的 Python 代码，Agent 运行代码、定位错误、构造反例并给出分层提示和解题复盘。当前版本先支持 Python 3。
 
 ## 当前版本
 
-当前技术原型包含：React/Vite 前端、FastAPI 后端、Ollama + Qwen2.5-Coder 1.5B Provider，以及用于验证模型调用和测试评分的 Python 微任务。新的题目/代码输入流程与 C++ 执行器尚在开发中；内置微任务不是正式评测集，当前也尚未进行 SFT/GRPO。
+当前技术原型包含：React/Vite 前端、FastAPI 后端、Ollama + Qwen2.5-Coder 1.5B Provider，以及用于验证模型调用和测试评分的 Python 微任务。内置微任务不是正式评测集，当前也尚未进行 SFT/GRPO。
 
 ## 快速开始
 
@@ -29,13 +29,13 @@ ollama pull qwen2.5-coder:1.5b
 ollama serve
 ```
 
-Ollama 安装后通常在后台运行。后端配置保存在 `backend/.env`：复制 `backend/.env.example` 为 `backend/.env`，然后按本机环境修改 `MODEL_BASE_URL`、`MODEL_NAME` 和 `CPP_COMPILER`。该文件已被 Git 忽略，不要提交。
+Ollama 安装后通常在后台运行。后端配置保存在 `backend/.env`：复制 `backend/.env.example` 为 `backend/.env`，然后按本机环境修改 `MODEL_BASE_URL` 和 `MODEL_NAME`。该文件已被 Git 忽略，不要提交。
 
 默认配置启用本地 Ollama 的 OpenAI-compatible Provider，本地调用不需要 API key。保存 `.env` 后启动后端即可；健康检查 `/api/health` 会报告当前 Provider。想切回 demo 模式，将 `AGENT_PROVIDER` 改为 `demo`。
 
 ### 提交 ACM 模式代码进行诊断
 
-前端接收题目描述、完整 ACM 模式 Python/C++ 程序（包含输入解析和输出）和多组样例。程序从标准输入读取数据并向标准输出打印答案。样例按 JSON 数组填写，例如：
+前端接收题目描述、完整 ACM 模式 Python 3 程序（包含输入解析和输出）和多组样例。程序从标准输入读取数据并向标准输出打印答案。样例按 JSON 数组填写，例如：
 
 ```json
 [

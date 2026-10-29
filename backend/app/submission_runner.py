@@ -1,5 +1,3 @@
-import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -12,40 +10,11 @@ def run_submission(language: str, source_code: str, samples: list[dict]) -> dict
     started = time.perf_counter()
     with tempfile.TemporaryDirectory(prefix="codereview-") as folder:
         root = Path(folder)
-        if language == "python":
-            source = root / "main.py"
-            source.write_text(source_code, encoding="utf-8")
-            command = [sys.executable, "-I", str(source)]
-        elif language == "cpp":
-            compiler = os.getenv("CPP_COMPILER", "g++")
-            compiler_path = shutil.which(compiler)
-            if compiler_path is None:
-                return {
-                    "compile_status": "unavailable",
-                    "run_status": "not_run",
-                    "stdout": "",
-                    "stderr": f"找不到 C++ 编译器 {compiler}。请安装 g++/MinGW 并配置 PATH。",
-                    "duration_ms": 0,
-                    "sample_results": [],
-                }
-            source = root / "main.cpp"
-            executable = root / ("main.exe" if os.name == "nt" else "main")
-            source.write_text(source_code, encoding="utf-8")
-            try:
-                compiled = subprocess.run([compiler_path, "-std=c++17", "-O0", "-pipe", str(source), "-o", str(executable)], cwd=root, capture_output=True, text=True, timeout=20, check=False)
-            except subprocess.TimeoutExpired:
-                return {"compile_status": "timeout", "run_status": "not_run", "stdout": "", "stderr": "编译超时", "duration_ms": int((time.perf_counter()-started)*1000), "sample_results": []}
-            if compiled.returncode:
-                diagnostic = (
-                    f"Compiler: {compiler_path}\n"
-                    f"Command: {compiler} -std=c++17 -O0 -pipe <source> -o <executable>\n"
-                    f"Exit code: {compiled.returncode}\n"
-                    f"{compiled.stderr.strip() or compiled.stdout.strip() or '[compiler returned no diagnostic output]'}"
-                )
-                return {"compile_status": "failed", "run_status": "not_run", "stdout": compiled.stdout[-4000:], "stderr": diagnostic[-4000:], "duration_ms": int((time.perf_counter()-started)*1000), "sample_results": []}
-            command = [str(executable)]
-        else:
-            raise ValueError("language must be python or cpp")
+        if language != "python":
+            raise ValueError("only Python submissions are currently supported")
+        source = root / "main.py"
+        source.write_text(source_code, encoding="utf-8")
+        command = [sys.executable, "-I", str(source)]
         try:
             cases = samples or [{"input": "", "expected_output": ""}]
             results = []
