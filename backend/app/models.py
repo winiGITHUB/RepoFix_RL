@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 
 class TaskSummary(BaseModel):
@@ -10,7 +12,29 @@ class TaskSummary(BaseModel):
 
 
 class RunRequest(BaseModel):
-    task_id: str
+    problem: str = Field(min_length=10, max_length=12000)
+    language: Literal["python", "cpp"]
+    source_code: str = Field(min_length=1, max_length=30000)
+    sample_input: str = Field(default="", max_length=4000)
+    expected_output: str = Field(default="", max_length=4000)
+
+
+class DiagnosisResult(BaseModel):
+    verdict: str
+    bug_category: str
+    location: str
+    counterexample: str
+    root_cause: str
+    hints: list[str]
+    solution_review: str
+    suggested_patch: str = ""
+
+
+class SubmissionRequest(BaseModel):
+    problem: str = Field(min_length=10, max_length=12000)
+    language: Literal["python", "cpp"]
+    source_code: str = Field(min_length=1, max_length=30000)
+    sample_input: str = Field(default="", max_length=4000)
 
 
 class TraceEvent(BaseModel):
@@ -31,4 +55,16 @@ class RunResult(BaseModel):
     duration_ms: int
     summary: str
     diff: str
+    trace: list[TraceEvent]
+
+
+class SubmissionResult(BaseModel):
+    run_id: str
+    language: str
+    compile_status: str
+    run_status: str
+    stdout: str
+    stderr: str
+    duration_ms: int
+    diagnosis: DiagnosisResult
     trace: list[TraceEvent]

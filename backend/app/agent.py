@@ -20,6 +20,18 @@ class DemoAgent:
 
     name = "demo-rule-provider"
 
+    def diagnose_submission(self, problem: str, language: str, source_code: str, execution: dict) -> dict:
+        return {
+            "verdict": "需要结合题意与运行结果判断",
+            "bug_category": "待分析",
+            "location": "未配置真实模型诊断",
+            "counterexample": execution.get("stderr", "请配置模型 Provider 生成针对性反例。"),
+            "root_cause": "当前为演示 Provider，不能提供可靠代码诊断。",
+            "hints": ["配置本地模型 Provider 后重新运行。"],
+            "solution_review": "尚未生成复盘。",
+            "suggested_patch": "",
+        }
+
     def propose_edit(self, task_id: str, files: dict[str, str]) -> ProposedEdit:
         if task_id == "string-normalize":
             return ProposedEdit(
@@ -101,3 +113,25 @@ class OpenAICompatibleAgent:
             )
         except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
             raise RuntimeError("Model returned an invalid edit JSON response") from exc
+
+    def diagnose_submission(self, problem: str, language: str, source_code: str, execution: dict) -> dict:
+        system = (
+            "你是循序渐进的算法代码诊断导师。根据题意、用户代码和真实运行结果诊断；"
+            "不要默认代码错误。如果缺少完整测试，只能说当前样例下观察到什么，不可声称已通过隐藏测试。"
+            "输出严格 JSON，字段 verdict, bug_category, location, counterexample, root_cause, hints (array), solution_review, suggested_patch。"
+            "先给提示，不要主动泄露完整解答；suggested_patch 可为空。"
+        )
+        user = json.dumps({"problem": problem, "language": language, "source_code": source_code, "execution": execution}, ensure_ascii=False)
+        payload = json.dumps({"model": self.model, "temperature": 0.2, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}], "response_format": {"type": "json_object"}}).encode("utf-8")
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        request = Request(f"{self.base_url}/chat/completions", data=payload, headers=headers)
+        try:
+            with urlopen(request, timeout=self.timeout) as response:
+                body = json.loads(response.read().decode("utf-8"))
+            content = body["choices"][0]["message"]["content"]
+            result = json.loads(content)
+            return {key: result.get(key, "") for key in ("verdict", "bug_category", "location", "counterexample", "root_cause", "hints", "solution_review", "suggested_patch")}
+        except (HTTPError, URLError, TimeoutError, KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f"Model diagnosis failed: {exc}") from exc
