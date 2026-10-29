@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Activity, ArrowDown, ArrowRight, Check, CheckCircle2, ChevronDown, CircleDot, Clock3, Code2, FileCode2, FlaskConical, GitBranch, LoaderCircle, Play, Sparkles, Terminal, Wrench, XCircle } from 'lucide-react'
 
 type Event = { step: number; kind: string; title: string; detail: string; status: string }
-type Run = { run_id: string; language: string; compile_status: string; run_status: string; stdout: string; stderr: string; duration_ms: number; diagnosis: { verdict: string; bug_category: string; location: string; counterexample: string; root_cause: string; hints: string[]; solution_review: string; suggested_patch: string }; trace: Event[] }
+type Run = { run_id: string; language: string; compile_status: string; run_status: string; stdout: string; stderr: string; duration_ms: number; sample_results: {case:number; passed:boolean; input:string; expected:string; actual:string; stderr:string; exit_code:number}[]; diagnosis: { verdict: string; bug_category: string; location: string; counterexample: string; root_cause: string; hints: string[]; solution_review: string; suggested_patch: string }; trace: Event[] }
 
 const eventIcon = (kind: string) => kind === 'tool' ? <Wrench size={15} /> : kind === 'evaluation' ? <FlaskConical size={15} /> : kind === 'reasoning' ? <Sparkles size={15} /> : <CircleDot size={15} />
 
@@ -10,7 +10,7 @@ export default function App() {
   const [language, setLanguage] = useState<'python' | 'cpp'>('python')
   const [problem, setProblem] = useState('')
   const [sourceCode, setSourceCode] = useState('')
-  const [sampleInput, setSampleInput] = useState('')
+  const [sampleCases, setSampleCases] = useState('[\n  {"input": "", "expected_output": ""}\n]')
   const [run, setRun] = useState<Run | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -24,7 +24,8 @@ export default function App() {
     if (!problem.trim() || !sourceCode.trim() || busy) return
     setBusy(true); setRun(null); setError('')
     try {
-      const response = await fetch('/api/submissions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem, language, source_code: sourceCode, sample_input: sampleInput }) })
+      const samples = JSON.parse(sampleCases)
+      const response = await fetch('/api/submissions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem, language, source_code: sourceCode, samples }) })
       if (!response.ok) throw new Error((await response.json()).detail ?? '任务执行失败')
       setRun(await response.json())
     } catch (e) { setError(e instanceof Error ? e.message : '请求失败') }
@@ -55,7 +56,7 @@ export default function App() {
           <div className="main-column">
             <section className="panel task-panel">
               <div className="panel-top"><div className="section-kicker"><span className="step-number">01</span> YOUR SUBMISSION</div><span className="task-count">LOCAL ONLY</span></div>
-              <div className="submission-form"><label className="input-label">Programming language<select value={language} onChange={e => setLanguage(e.target.value as 'python' | 'cpp')}><option value="python">Python 3</option><option value="cpp">C++17</option></select></label><label className="input-label">Problem description<textarea className="problem-input" value={problem} onChange={e => setProblem(e.target.value)} placeholder="Paste the problem statement or describe the task…" rows={4}/></label><label className="input-label">Your code<textarea className="code-input" value={sourceCode} onChange={e => setSourceCode(e.target.value)} placeholder={language === 'python' ? 'Paste your Python solution…' : 'Paste your C++17 solution…'} rows={11} spellCheck={false}/></label><label className="input-label">Sample input (stdin, optional)<textarea className="sample-input" value={sampleInput} onChange={e => setSampleInput(e.target.value)} placeholder="Input passed to your program" rows={2}/></label></div>
+              <div className="submission-form"><label className="input-label">Programming language<select value={language} onChange={e => setLanguage(e.target.value as 'python' | 'cpp')}><option value="python">Python 3</option><option value="cpp">C++17</option></select></label><label className="input-label">Problem description<textarea className="problem-input" value={problem} onChange={e => setProblem(e.target.value)} placeholder="Paste the problem statement or describe the task…" rows={4}/></label><label className="input-label">Your code<textarea className="code-input" value={sourceCode} onChange={e => setSourceCode(e.target.value)} placeholder={language === 'python' ? 'Paste your Python solution…' : 'Paste your C++17 solution…'} rows={11} spellCheck={false}/></label><label className="input-label">Examples (JSON array with input and expected_output)<textarea className="sample-input" value={sampleCases} onChange={e => setSampleCases(e.target.value)} rows={5} spellCheck={false}/></label></div>
               <div className="run-row"><div className="run-caption"><span className="caption-dot" /> Runs locally <span className="run-caption-sep">·</span> 3s timeout</div><button className="run-button" onClick={startRun} disabled={busy || !problem.trim() || !sourceCode.trim()}>{busy ? <LoaderCircle className="spin" size={16} /> : <Play size={15} fill="currentColor" />} {busy ? 'Analyzing' : 'Run & review'} <ArrowRight size={15} /></button></div>
             </section>
 

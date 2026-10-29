@@ -39,6 +39,19 @@ $env:MODEL_NAME = "qwen2.5-coder:1.5b"
 
 本地 Ollama 不需要 API key。随后照常运行 `uvicorn app.main:app --reload`。健康检查 `/api/health` 会报告当前 Provider。要恢复演示模式，可在新终端（未设置这些变量）启动后端。
 
+### 提交代码进行诊断
+
+前端接收题目描述、Python/C++ 代码和多组样例。样例按 JSON 数组填写，例如：
+
+```json
+[
+  {"input": "3 4\n", "expected_output": "7"},
+  {"input": "10 -2\n", "expected_output": "8"}
+]
+```
+
+当前 runner 面向**完整、可独立运行的 stdin/stdout 程序**。LeetCode 常见的 `class Solution`/方法提交片段不能直接运行；需要后续加入题型/方法签名对应的 harness。当前校验的是用户提供的样例，不是 LeetCode 全部隐藏测试，也不能据此宣称 AC。
+
 ### 前端
 
 ```powershell

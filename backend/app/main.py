@@ -55,7 +55,8 @@ def run_task(request: RunRequest) -> RunResult:
 @app.post("/api/submissions", response_model=SubmissionResult)
 def diagnose_submission(request: SubmissionRequest) -> SubmissionResult:
     try:
-        execution = run_submission(request.language, request.source_code, request.sample_input)
+        samples = [item.model_dump() for item in request.samples]
+        execution = run_submission(request.language, request.source_code, samples)
         diagnosis = get_agent().diagnose_submission(
             request.problem, request.language, request.source_code, execution
         )

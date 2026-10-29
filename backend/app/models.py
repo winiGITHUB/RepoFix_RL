@@ -34,7 +34,12 @@ class SubmissionRequest(BaseModel):
     problem: str = Field(min_length=10, max_length=12000)
     language: Literal["python", "cpp"]
     source_code: str = Field(min_length=1, max_length=30000)
-    sample_input: str = Field(default="", max_length=4000)
+    samples: list["SampleCase"] = Field(default_factory=list, max_length=20)
+
+
+class SampleCase(BaseModel):
+    input: str = Field(default="", max_length=4000)
+    expected_output: str = Field(default="", max_length=4000)
 
 
 class TraceEvent(BaseModel):
@@ -66,5 +71,6 @@ class SubmissionResult(BaseModel):
     stdout: str
     stderr: str
     duration_ms: int
+    sample_results: list[dict]
     diagnosis: DiagnosisResult
     trace: list[TraceEvent]
