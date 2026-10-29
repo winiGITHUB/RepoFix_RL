@@ -36,7 +36,13 @@ def run_submission(language: str, source_code: str, samples: list[dict]) -> dict
             except subprocess.TimeoutExpired:
                 return {"compile_status": "timeout", "run_status": "not_run", "stdout": "", "stderr": "编译超时", "duration_ms": int((time.perf_counter()-started)*1000), "sample_results": []}
             if compiled.returncode:
-                return {"compile_status": "failed", "run_status": "not_run", "stdout": compiled.stdout[-4000:], "stderr": compiled.stderr[-4000:], "duration_ms": int((time.perf_counter()-started)*1000), "sample_results": []}
+                diagnostic = (
+                    f"Compiler: {compiler_path}\n"
+                    f"Command: {compiler} -std=c++17 -O0 -pipe <source> -o <executable>\n"
+                    f"Exit code: {compiled.returncode}\n"
+                    f"{compiled.stderr.strip() or compiled.stdout.strip() or '[compiler returned no diagnostic output]'}"
+                )
+                return {"compile_status": "failed", "run_status": "not_run", "stdout": compiled.stdout[-4000:], "stderr": diagnostic[-4000:], "duration_ms": int((time.perf_counter()-started)*1000), "sample_results": []}
             command = [str(executable)]
         else:
             raise ValueError("language must be python or cpp")
